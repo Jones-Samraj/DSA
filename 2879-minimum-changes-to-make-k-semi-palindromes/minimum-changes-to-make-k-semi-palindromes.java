@@ -1,71 +1,61 @@
 
+import java.util.*;
+
 class Solution {
-
     public int minimumChanges(String s, int k) {
-
         int n = s.length();
 
         int[][] cost = new int[n][n];
 
-        // Precompute cost of every substring
-        for (int l = 0; l < n; l++) {
+        // Calculate cost for every substring
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int len = j - i + 1;
+                cost[i][j] = Integer.MAX_VALUE;
 
-            for (int r = l + 1; r < n; r++) {
-
-                int len = r - l + 1;
-                int best = Integer.MAX_VALUE;
-
-                // Try every proper divisor
+                // Try every valid divisor
                 for (int d = 1; d < len; d++) {
-
                     if (len % d != 0) continue;
 
                     int changes = 0;
-                    int groups = len / d;
 
-                    // Check each group
-                    for (int i = 0; i < d; i++) {
+                    // Build and compare each group
+                    for (int r = 0; r < d; r++) {
+                        int left = r;
+                        int right = len - d + r;
 
-                        for (int t = 0; t < groups / 2; t++) {
-
-                            int left = l + i + t * d;
-
-                            int right = l + i
-                                + (groups - 1 - t) * d;
-
-                            if (s.charAt(left) != s.charAt(right)) {
+                        while (left < right) {
+                            if (s.charAt(i + left) !=
+                                s.charAt(i + right)) {
                                 changes++;
                             }
+
+                            left += d;
+                            right -= d;
                         }
                     }
 
-                    best = Math.min(best, changes);
+                    cost[i][j] = Math.min(cost[i][j], changes);
                 }
-
-                cost[l][r] = best;
             }
         }
 
-        // Dynamic Programming
+        // DP
         int INF = 1000000;
-
         int[][] dp = new int[k + 1][n + 1];
 
         for (int[] row : dp) {
-            java.util.Arrays.fill(row, INF);
+            Arrays.fill(row, INF);
         }
 
         dp[0][0] = 0;
 
-        for (int parts = 1; parts <= k; parts++) {
-
-            for (int i = 2 * parts; i <= n; i++) {
-
-                for (int j = 2 * (parts - 1); j <= i - 2; j++) {
-
-                    dp[parts][i] = Math.min(
-                        dp[parts][i],
-                        dp[parts - 1][j] + cost[j][i - 1]
+        for (int p = 1; p <= k; p++) {
+            for (int i = 2 * p; i <= n; i++) {
+                for (int j = 2 * (p - 1); j <= i - 2; j++) {
+                    dp[p][i] = Math.min(
+                        dp[p][i],
+                        dp[p - 1][j] + cost[j][i - 1]
                     );
                 }
             }
